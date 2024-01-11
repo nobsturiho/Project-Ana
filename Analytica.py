@@ -242,7 +242,7 @@ if add_sidebar == 'Data_Cleaning':
                 df['Number_of_employees']= df['Number_of_employees'].round(0).astype('Int64')
                 df['Annual_revenue_of_borrower']= df['Annual_revenue_of_borrower'].astype('Int64')
                 df['Length_of_time_running']= df['Length_of_time_running'].astype('Int64')
-                df['Person_with_disabilities']= df['Person_with_disabilities'].astype('str')
+                #df['Person_with_disabilities']= df['Person_with_disabilities'].astype('str')
                 df['Number_of_employees_that_are_refugees']= df['Number_of_employees_that_are_refugees'].round(0).astype('Int64')
                 df['Number_of_female_employees']= df['Number_of_female_employees'].astype('Int64')
                 df['Previously_unemployed']= df['Previously_unemployed'].astype('Int64')
