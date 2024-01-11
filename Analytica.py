@@ -61,6 +61,7 @@ if add_sidebar == 'Data_Cleaning':
         
         
         #Add Data Cleaning Button
+        st.subheader('Data Cleaning and Portfolio Monitoring')
         if st.button("Click to Clean Data"):
             
             #Clean the data
