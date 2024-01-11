@@ -17,7 +17,7 @@ st.header('Project Analytica (MSE Recovery Fund)')
 
 
 #Add Sidebar to DashBoard
-add_sidebar = st.sidebar.selectbox('Category',('Data_Cleaning','About The Fund','Impact Measurement','PFI Comparison'))
+add_sidebar = st.sidebar.selectbox('Category',('About The Fund','Data_Cleaning','Impact Measurement','PFI Comparison'))
 
 if add_sidebar == 'About The Fund':
     st.write('The Micro and Small Enterprises (MSE) Recovery Fund is a 5-year, USD 20MN (approximately UGX 70 Bn)',
@@ -839,23 +839,50 @@ if add_sidebar == 'Data_Cleaning':
 
 
             #Data Cleaning Code for Vision Fund                   
-            else:
+            elif df['lender'].iloc[0] == 'Vision Fund':
                 df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
                 df = df.drop(columns = ['Line_of_business', 'Loan_purpose'])
                 df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level',
                                            'employment_status', 'Loan_term_value','created','NIN', 'Phone_number',"Date_of_birth"])
-                df["Borrower_ID"] = df["Borrower_ID"].astype(str)
-                df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
-                df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"])
-                df['Interest_rate'] = df['Interest_rate']*12/100
-                df["Gender"] = df["Gender"].str.title()
-                df["Person_with_disabilities"] = df["Person_with_disabilities"].str.title()
-                df["Rural_urban"] = df["Rural_urban"].str.title()
-                df["Length_of_time_running"] = df["Length_of_time_running"]//12
-                
+
+                try:
+                    df["Borrower_ID"] = df["Borrower_ID"].astype(str)
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"])
+                except Exception as e:
+                    print(e)
+                try:
+                    df['Interest_rate'] = df['Interest_rate']*12/100
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Gender"] = df["Gender"].str.title()
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Person_with_disabilities"] = df["Person_with_disabilities"].str.title()
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Rural_urban"] = df["Rural_urban"].str.title()
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Length_of_time_running"] = df["Length_of_time_running"]//12
+                except Exception as e:
+                    print(e)
+                    
+                try:
                 #Add Age Group Column 
-                df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
-                
+                    df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
+                except Exception as e:
+                    print(e)
                 
                 # Create a dictionary of sectors and their key words
                 sector_keywords = {
@@ -1064,8 +1091,270 @@ if add_sidebar == 'Data_Cleaning':
                                 break  # Exit the loop once a sector is identified for the current row
                 
                 
+            #Data Cleaning Code for Other PFI                  
+            else:
+                df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
+                df = df.drop(columns = ['Line_of_business', 'Loan_purpose'])
+                df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level',
+                                           'employment_status', 'Loan_term_value','created','NIN', 'Phone_number'])
+                if df["Date_of_birth"].iloc[0] =='':
+                    df = df.drop(columns =["Date_of_birth"])
+                try:
+                    df["Borrower_ID"] = df["Borrower_ID"].astype(str)
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"])
+                except Exception as e:
+                    print(e)
+                try:
+                    df['Interest_rate'] = df['Interest_rate']*100
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Gender"] = df["Gender"].str.title()
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Person_with_disabilities"] = df["Person_with_disabilities"].str.title()
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Rural_urban"] = df["Rural_urban"].str.title()
+                except Exception as e:
+                    print(e)
+                try:
+                    df["Length_of_time_running"] = df["Length_of_time_running"]
+                except Exception as e:
+                    print(e)
+                    
+                try:
+                #Add Age Group Column 
+                    if df["Age"].iloc[0] == '':
+                        df["Age_Group"]='Calculate Age'
+                    else:                        
+                        df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
+                except Exception as e:
+                    st.write(e)    
                 
+                # Create a dictionary of sectors and their key words
+                sector_keywords = {
+                    'Other': ['purchase of assets', 'marketing', 'restructuring of facility','memebership organisations','auto richshaw',
+                              'portfolio', 'Portfolio Concentration', 'other activities', 'other services buying stock'],
+                    'Enterprise/Business Development': ["trade",'merchandise','fertilizer & insecticide','stall','cottage industry',
+                                                        'trading','retail','boutique','wholesale','hawk','business','working capital', 'sell',
+                                                        'shop', 'agribusiness','buying stock','textiles,apparel and leather clothing',
+                                                       'super market'],
+                    'Agriculture': ['agricult','crops', 'productionmaize','production rice', 'agro products','animal', 'farm', 'rearing', 
+                                    'vegetable', 'fish','poultry','coffee','beef','cattle','banana','livestock','agro input','maize',
+                                    'sugar cane production','diary production','fattening'],
+                    'Technology': ['technology', 'software', 'hardware'],
+                    'Finance / Financial Services': ['financ', 'banking', 'investment', 'mobile money', 'loan'],
+                    'Health': ['health', 'medical', 'pharmac', 'diagnos'],
+                    'Food & Beverage': ['bakery','maize processing','confection', 'fast food', 'restaurant', 'baker', 'cook'],
+                    'Manufacturing': ['manufactur','factory'],
+                    'Education & Skills': ['educat','school','tuition','train'],
+                    'Refugees & Displaced Populations': ['refugee'],
+                    'Tourism & Hospitality': ['hotel'],
+                    'Innovation': ['handicraft', 'furniture','bamboo'],
+                    'Services': ['saloon','laundry','mechanic', 'tailor', 'beauty', 'print', 'weaving'],
+                    'Energy': ["coal", 'oil mill','energy'],
+                    'Digital Economy': ["fax", 'digital economy'],
+                    'Construction & Estates': ["rent",'construct', 'estate','house renovation','house completion'],
+                    'Transport': ['transport', 'boda', 'motorcycle'],
+                    'Mining': ['mining', 'mineral','quarry'],
+                    # Add more sectors and their associated keywords as needed
+                }
                 
+                try:
+                    # Create a new column 'sector' and initialize with 'Other'
+                    df['sector'] = 'not_defined'
+                    
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        line_of_business = row['Sector'].lower()
+                        
+                        # Check for each sector's keywords in the 'line_of_business' column
+                        for sector, keywords in sector_keywords.items():
+                            for keyword in keywords:
+                                if keyword in line_of_business:
+                                    df.at[index, 'sector'] = sector
+                                    break  # Exit the loop once a sector is identified for the current row
+    
+                    # Delete the Original 'Sector' Column
+                    df.drop(columns="Sector", inplace=True)
+                    df.rename(columns={'sector': 'Sector'}, inplace=True)
+    
+                except Exception:
+                    st.write('Error determining Sector')
+
+                # Define your Districts and corresponding keywords
+                district_keywords = {
+                        "Moyo": ["moyo"],
+                        'Mbarara': ['mbarara'],
+                        'Kampala': ['kampala'],
+                        'Kiruhura': ['kiruhura'],
+                        'Ibanda': ['ibanda'],
+                        'Bushenyi': ['ishaka', 'bushenyi'],
+                        'Isingiro': ['isingiro'],
+                        'Kazo': ['kazo'],
+                        'Wakiso': ['wakiso', 'kyaliwajjala', 'nansana', 'entebbe', 'abayita', 'kireka'],
+                        'Kibingo': ['buringo', 'masheruka','bwayegamba'],
+                        'Sheema': ['sheema','kabwohe', 'rwanama','mashojwa'],
+                        'Ntungamo': ['ntungamo','kyaruhanga','rubaare','katomi'],
+                        'Rukiga': ['rukiga', 'nyakambu','rwenyangye','kamwezi'],
+                        'Kamwenge': ['kamwenge', 'kyabandara','bwizi t c'],
+                        'Masaka': ['masaka'],
+                        'Rukungiri': ['rukungiri'],
+                        'Iganga': ['iganga'],
+                        'Buikwe': ['buikwe','lugazi'],
+                        'Bugiri': ['bugiri'],
+                        'Soroti': ['soroti'],
+                        'Kagadi':['kagadi'],
+                        'Kabale': ['kabale', 'nyakashebeya'],
+                        'Gulu': ['gulu'],
+                        'Kayunga': ['kayunga'],
+                        'Mbale': ['mbale'],
+                        'Pader': ['pader'],
+                        'Kamuli': ['kamuli'],
+                        'Namayingo': ['namayingo'],
+                        'Koboko': ['koboko'],
+                        'Mityana': ['mityana'],
+                        'Hoima': ['hoima'],
+                        'Nakasongola': ['nakasongola'],
+                        'Kasese': ['kasese', 'bwera'],
+                        'Lira': ['lira'],
+                        'Mukono': ['mukono'],
+                        'Kyenjojo': ['kyenjojo'],
+                        'Masindi': ['masindi'],
+                        'Buhweju': ['buhweju','kabegaramire'],
+                        'Butambala': ['butambala','kalamba'],
+                        'Rakai': ['rakai'],
+                        'Mpigi': ['mpigi'],
+                        'Sembabule': ['sembabule', 'sembambule'],
+                        'Arua': ['arua'],
+                        'Rubanda': ['rubanda'],
+                        'Gomba': ['gomba'],
+                        'Bundibugyo': ['bundibugyo'],
+                        'Kiryandongo': ['kiryandongo', 'bweyale'],
+                        'Oyam': ['oyam'],
+                        'Mitooma': ['mitooma'],
+                        'Rubirizi': ['rubirizi','kichwamba'],
+                        'Lyantonde': ['lyantonde'],
+                        'Bukwo': ['bukwo','bukwa'],
+                        'Busia': ['busia'],
+                        'Mubende': ['mubende'],
+                        'Kitagwenda': ['kitagwenda'],
+                        'Lwengo': ['lwengo'],
+                        'Mayuge': ['mayuge'],
+                        'Sironko': ['sironko'],
+                        'Kibaale': ['kibale', 'kibaale'],
+                        'Bukomansimbi': ['bukomansimbi'],
+                        'Budaka': ['budaka'],
+                        'Kole': ['kole'],
+                        'Fort Portal':['fort portal'],
+                        'Bulambuli': ['bulambuli'],
+                        'Luwero': ['luwero'],
+                        'Tororo': ['tororo'],
+                        'Serere': ['serere'],
+                        'Bunyangabu': ['bunyangabu'],
+                        'Pallisa': ['pallisa'],
+                        'Manafwa': ['manafwa'],
+                        'Kalungu': ['kalungu'],
+                        'Kyegegwa': ['kyegegwa','kyeggegwa'],
+                        'Kumi': ['kumi'],
+                        'Kakumiro': ['kakumiro'],
+                        'Kitgum': ['kitgum'],
+                        'Kanungu': ['kanungu'],
+                        'Kiboga': ['kiboga'],
+                        'Kapchorwa': ['kapchorwa'],
+                        'Kaliro': ['kaliro'],
+                        'Dokolo': ['dokolo'],
+                        'Apac': ['apac'],
+                        'Kabalore': ['nyamirima'],
+                        'Zombo': ['zombo'],
+                        'Nebbi': ['nebbi'],
+                        'Alebtong':['alebtong'],
+                        'Kibuku':['kibuku'],
+                        'Kyotera': ['kyotera','buwenge'],
+                        'Jinja': ['jinja'],
+                        'Kabarole': ['kabarole'],
+                        'Buvuma': ['buvuma'],
+                        "Yumbe": ["yumbe"],
+                        "Obongi": ["obongi"],
+                        "Adjumani": ["adjumani"],
+                        "Amuru": ["amuru"],
+                        "Katakwi": ["katakwii"],
+                        "Amuria": ["amuria"],
+                        "Bududa": ["bududa"],
+                        'Bukedea': ["bukedea"],
+                        "Nakaseke": ["nakaseke"],
+                        "Omoro": ["omoro"],
+                        "Kyankwanzi": ["kyankwanzi"],
+                        "Kasanda": ["kasanda"],
+                        'Luuka': ['luuka'],
+                        'Kaberamaido':['kaberimaido']
+                        
+                    # Add more districts and their associated keywords as needed
+                }
+                
+                # Create a new column 'district' and initialize with 'Other'
+                try:
+                    df['District'] = 'Other'
+                    
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        location = row['Location_of_borrower'].lower()
+                        
+                        # Check for each sector's keywords in the 'location' column
+                        for district, keywords in district_keywords.items():
+                            for keyword in keywords:
+                                if keyword in location:
+                                    df.at[index, 'District'] = district
+                                    break  # Exit the loop once a sector is identified for the current row
+                    
+                except Exception:
+                    st.write('Error determining Sector')
+
+                try:
+                    region_keywords = {
+                            'Western': ['mbarara','fort portal','kagadi','kabale','rukungiri','ibanda','bushenyi','hoima','kyenjojo','kasese',
+                                        'masindi','sheema','isingiro','buhweju','kibaale','kitagwenda','kamwenge','rubanda','ntungamo','kiruhura',
+                                       'bundibugyo','kiryandongo','rubirizi','bunyangabu','rukiga','kyegegwa','kanungu','kazo','mitooma','kabalore',
+                                       'kibingo','kabarole'],
+                            'Eastern': ['jinja','iganga','bugiri','soroti','mbale','kamuli','namayingo','sironko','budaka','busia','bukwo',
+                                        'bulambuli','tororo','serere','pallisa','manafwa','kumi','kapchorwa','kaliro','kibuku','katakwi',"amuria",
+                                       "bududa",'bukedea','luuka','kaberamaido'],
+                            'Central': ['kampala','luwero','kyotera','masaka','kayunga','mityana','sembabule','nakasongola','mukono','bukomansimbi',
+                                       'rakai','wakiso','mpigi','buikwe','gomba','lwengo','mayuge','butambala','lyantonde','mubende','kalungu',
+                                        'kiboga','butambala','buvuma','nakaseke','kyankwanzi','kasanda'],
+                            'Northern': ['gulu','pader','koboko','lira','arua','oyam','kole','zombo','nebbi','kitgum','dokolo','apac','alebtong',
+                                        'yumbe',"obongi","moyo", 'adjumani','omoro','amuru']
+                    
+                        # Add more regions and their associated keywords as needed
+                    }
+                    
+                    # Create a new column 'region' and initialize with 'Other'
+                    df['Region'] = 'Other'
+                    
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        location = row['District'].lower()
+                        
+                        # Check for each district's keywords in the 'District' column
+                        for region, district in region_keywords.items():
+                            for keyword in district:
+                                if keyword in location:
+                                    df.at[index, 'Region'] = region
+                                    break  # Exit the loop once a sector is identified for the current row
+                    
+                                
+                except Exception:
+                    st.write('Error determining District')                
                 
 
 
@@ -1147,6 +1436,9 @@ if add_sidebar == 'Data_Cleaning':
             Annual_Revenue = format(round(df['Annual_revenue_of_borrower'].mean(), 0), ',')
             st.metric('Average Revenue (UGX)',Annual_Revenue)
             
-            st.subheader('Average Number of Employees')
-            employees = round(df['Number_of_employees'].mean(), 0)
-            st.metric('Average number of employees:', employees)
+            try:
+                st.subheader('Average Number of Employees')
+                employees = round(df['Number_of_employees'].mean(), 0)
+                st.metric('Average number of employees:', employees)
+            except Exception:
+                st.write("Error")
