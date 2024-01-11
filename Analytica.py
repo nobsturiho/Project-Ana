@@ -17,7 +17,7 @@ st.header('Project Analytica (MSE Recovery Fund)')
 
 
 #Add Sidebar to DashBoard
-add_sidebar = st.sidebar.selectbox('Category',('About The Fund','Data_Cleaning','Impact Measurement','PFI Comparison'))
+add_sidebar = st.sidebar.selectbox('Category',('Data_Cleaning','About The Fund','Impact Measurement','PFI Comparison'))
 
 if add_sidebar == 'About The Fund':
     st.write('The Micro and Small Enterprises (MSE) Recovery Fund is a 5-year, USD 20MN (approximately UGX 70 Bn)',
