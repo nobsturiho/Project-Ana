@@ -8,9 +8,7 @@ Created on Sun Dec 24 15:36:11 2023
 import streamlit as st
 import pandas as pd
 import numpy as np
-
-
-       
+   
 
 #Develop DashBoard
 st.header('Project Analytica (MSE Recovery Fund)')
@@ -61,7 +59,6 @@ if add_sidebar == 'Data_Cleaning':
         
         
         #Add Data Cleaning Button
-        st.subheader('Data Cleaning and Portfolio Monitoring')
         if st.button("Click to Clean Data"):
             
             #Clean the data
@@ -72,22 +69,45 @@ if add_sidebar == 'Data_Cleaning':
             #Data Cleaning Code for Butuuro SACCO                   
             if df['lender'].iloc[0] == 'Butuuro SACCO':
         
-                df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
-                df["Loan_ID"] = df["Loan_ID"].astype(str)
-                df["Borrower_ID"] = df["Borrower_ID"].astype(str)
-                df["Date_of_birth"] = pd.to_datetime(df["Date_of_birth"],format='mixed')
+                try:
+                    df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
+                    df["Loan_ID"] = df["Loan_ID"].astype(str)
+                    df["Borrower_ID"] = df["Borrower_ID"].astype(str)
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df["Date_of_birth"] = pd.to_datetime(df["Date_of_birth"],format='mixed')
                 #df['Date_of_loan_issue'] = (df['Date_of_loan_issue'].str.replace(' 00:00:00','')).str.replace(' ','')
-                df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"], format='mixed')#, dayfirst=False)
-                df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"],format='mixed')
-                df["Expected_monthly_installment"] = df["Expected_monthly_installment"].astype(int)
-                df["Age"] = (((df["Date_of_loan_issue"] - df["Date_of_birth"]).dt.days)//365.25).astype(int)
-                df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level','Line_of_business', 'Loan_purpose',
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"], format='mixed')#, dayfirst=False)
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"],format='mixed')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df["Expected_monthly_installment"] = df["Expected_monthly_installment"].round(0).astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df["Age"] = (((df["Date_of_loan_issue"] - df["Date_of_birth"]).dt.days)//365.25).astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level','Line_of_business', 'Loan_purpose',
                                                    'employment_status', 'Loan_term_value','created','NIN', 'Phone_number',"Date_of_birth"])
-                df['Interest_rate'] = df['Interest_rate']*12/100
-                df["Loan_type"] = df["Loan_type"].str.replace(" Client", "")
-                #Add Age Group
-                df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
-                
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Interest_rate'] = df['Interest_rate']*12/100
+                    df["Loan_type"] = df["Loan_type"].str.replace(" Client", "")
+                    #Add Age Group
+                    df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
+                except Exception as e:
+                    st.write(e)
                 #Add Sector
                 # Create a dictionary of sectors and their key words
                 sector_keywords = {
@@ -117,24 +137,25 @@ if add_sidebar == 'Data_Cleaning':
                     'Mining': ['mining', 'mineral','quarry'],
                     # Add more sectors and their associated keywords as needed
                 }
-                
-                # Create a new column 'sector' and initialize with 'Other'
+
+                    # Create a new column 'sector' and initialize with 'Other'
                 df['sector'] = 'not_defined'
-                
-                # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    line_of_business = row['Sector'].lower()
+                try:
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        line_of_business = row['Sector'].lower()
+                        
+                        # Check for each sector's keywords in the 'line_of_business' column
+                        for sector, keywords in sector_keywords.items():
+                            for keyword in keywords:
+                                if keyword in line_of_business:
+                                    df.at[index, 'sector'] = sector
+                                    break  # Exit the loop once a district is identified for the current row
                     
-                    # Check for each sector's keywords in the 'line_of_business' column
-                    for sector, keywords in sector_keywords.items():
-                        for keyword in keywords:
-                            if keyword in line_of_business:
-                                df.at[index, 'sector'] = sector
-                                break  # Exit the loop once a district is identified for the current row
-                
-                df.drop(columns="Sector", inplace=True)
-                df.rename(columns={'sector': 'Sector'}, inplace=True)
-        
+                    df.drop(columns="Sector", inplace=True)
+                    df.rename(columns={'sector': 'Sector'}, inplace=True)
+                except Exception as e:
+                    st.write(e)
         
         
                 #Add Districts
@@ -170,20 +191,22 @@ if add_sidebar == 'Data_Cleaning':
                     
                     # Add more districts and their associated keywords as needed
                 }
-                
-                # Create a new column 'district' and initialize with 'Other'
+
+                    # Create a new column 'district' and initialize with 'Other'
                 df['District'] = 'Other'
-                
-                # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['Location_of_borrower'].lower()
-                    
-                    # Check for each sector's keywords in the 'location' column
-                    for district, keywords in district_keywords.items():
-                        for keyword in keywords:
-                            if keyword in location:
-                                df.at[index, 'District'] = district
-                                break  # Exit the loop once a sector is identified for the current row
+                try:
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        location = row['Location_of_borrower'].lower()
+                        
+                        # Check for each sector's keywords in the 'location' column
+                        for district, keywords in district_keywords.items():
+                            for keyword in keywords:
+                                if keyword in location:
+                                    df.at[index, 'District'] = district
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                    st.write(e)
                 
                 #Add Regions
                 region_keywords = {
@@ -198,17 +221,19 @@ if add_sidebar == 'Data_Cleaning':
                 # Create a new column 'region' and initialize with 'Other'
                 df['Region'] = 'Other'
                 
-                # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['District'].lower()
-                    
-                    # Check for each district's keywords in the 'District' column
-                    for region, district in region_keywords.items():
-                        for keyword in district:
-                            if keyword in location:
-                                df.at[index, 'Region'] = region
-                                break  # Exit the loop once a Region is identified for the current row
-
+                try:
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        location = row['District'].lower()
+                        
+                        # Check for each district's keywords in the 'District' column
+                        for region, district in region_keywords.items():
+                            for keyword in district:
+                                if keyword in location:
+                                    df.at[index, 'Region'] = region
+                                    break  # Exit the loop once a Region is identified for the current row
+                except Exception as e:
+                    st.write(e)
              
 
 
@@ -216,47 +241,92 @@ if add_sidebar == 'Data_Cleaning':
             elif df['lender'].iloc[0] == 'FINCA Uganda':
                
                 #combine line of business and loan purpose to create sector
-                df['Sector']= df['Line_of_business'] + " "+ df['Loan_purpose']
-                df=df.drop(columns=['id','name_of_borrower','email_of_borrower','highest_education_level','employment_status',
+                try:
+                    df['Sector']= df['Line_of_business'] + " "+ df['Loan_purpose']
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df=df.drop(columns=['id','name_of_borrower','email_of_borrower','highest_education_level','employment_status',
                     'created','Date_of_birth','Loan_term_value','Line_of_business','Loan_purpose','NIN', 'Phone_number'])
-
+                except Exception as e:
+                    st.write(e)
                 #align date columns
-                df['Date_of_loan_issue']=pd.to_datetime(df['Date_of_loan_issue'])
-                df['Date_of_repayments_commencement']=pd.to_datetime(df['Date_of_repayments_commencement'])
-                
+                try:
+                    df['Date_of_loan_issue']=pd.to_datetime(df['Date_of_loan_issue'])
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Date_of_repayments_commencement']=pd.to_datetime(df['Date_of_repayments_commencement'])
+                except Exception as e:
+                    st.write(e)
                 #remove units in tenure of loans
-                df['Tenure_of_loan']= df['Tenure_of_loan'].str.replace(' Month(s)','',regex=False).astype('Int64')
-                
+                try:
+                    df['Tenure_of_loan']= df['Tenure_of_loan'].str.replace(' Month(s)','',regex=False).astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                    
                 #remove 'loans' in loan type
                 df['Loan_type']= df['Loan_type'].str.replace(' loan','',regex=False)
                 
                 #change M to male and F to female
                 df['Gender']= df['Gender'].str.replace('F','Female',regex=False)
                 df['Gender']= df['Gender'].str.replace('M','Male',regex=False)
-                
+                try:
                 #change interest rate to % without units
-                df['Interest_rate']= (df['Interest_rate'].str.replace('%','',regex=False).astype(float))/100
-                
+                    df['Interest_rate']= (df['Interest_rate'].str.replace('%','',regex=False).astype(float))/100
+                except Exception as e:
+                    st.write(e)
                 #change Expected_number_of_installments, Number_of_employees, Annual_revenue_of_borrower, Length_of_time_running, Person_with_disabilities, Number_of_employees_that_are_refugees, Number_of_female_employees, Previously_unemployed, Number_of_employees_with_disabilities to integers
-                df['Expected_number_of_installments']= df['Expected_number_of_installments'].str.replace(' Month(s)','',regex=False).astype('Int64')
-                df['Number_of_employees']= df['Number_of_employees'].round(0).astype('Int64')
-                df['Annual_revenue_of_borrower']= df['Annual_revenue_of_borrower'].astype('Int64')
-                df['Length_of_time_running']= df['Length_of_time_running'].astype('Int64')
-                #df['Person_with_disabilities']= df['Person_with_disabilities'].astype('str')
-                df['Number_of_employees_that_are_refugees']= df['Number_of_employees_that_are_refugees'].round(0).astype('Int64')
-                df['Number_of_female_employees']= df['Number_of_female_employees'].astype('Int64')
-                df['Previously_unemployed']= df['Previously_unemployed'].astype('Int64')
-                df['Number_of_employees_with_disabilities']= df['Number_of_employees_with_disabilities'].astype('Int64')
-                
+                try:
+                    df['Expected_number_of_installments']= df['Expected_number_of_installments'].str.replace(' Month(s)','',regex=False).astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Number_of_employees']= df['Number_of_employees'].round(0).astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Annual_revenue_of_borrower']= df['Annual_revenue_of_borrower'].astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Length_of_time_running']= df['Length_of_time_running'].astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Person_with_disabilities']= df['Person_with_disabilities'].astype('str')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Number_of_employees_that_are_refugees']= df['Number_of_employees_that_are_refugees'].round(0).astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Number_of_female_employees']= df['Number_of_female_employees'].astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Previously_unemployed']= df['Previously_unemployed'].astype('Int64')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Number_of_employees_with_disabilities']= df['Number_of_employees_with_disabilities'].astype('Int64')
+                except Exception as e:
+                    st.write(e)
                 #change Loan_ID and Borrower_ID to string
-                df['Loan_ID']= df['Loan_ID'].astype('str')
-                df['Borrower_ID']= df['Borrower_ID'].astype('str')
-
-            
+                try:
+                    df['Loan_ID']= df['Loan_ID'].astype('str')
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df['Borrower_ID']= df['Borrower_ID'].astype('str')
+                except Exception as e:
+                    st.write(e)
+                try:
                 # Create age group column
-                df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
-                
-                
+                    df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
+                except Exception as e:
+                    st.write(e)
                 
                 
                 # Create a dictionary of sectors and their key words
@@ -290,21 +360,23 @@ if add_sidebar == 'Data_Cleaning':
                 # Create a new column 'sector' and initialize with 'Other'
                 df['sector'] = 'not_defined'
                 
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    line_of_business = row['Sector'].lower()
+                    for index, row in df.iterrows():
+                        line_of_business = row['Sector'].lower()
+                        
+                        # Check for each sector's keywords in the 'line_of_business' column
+                        for sector, keywords in sector_keywords.items():
+                            for keyword in keywords:
+                                if keyword in line_of_business:
+                                    df.at[index, 'sector'] = sector
+                                    break  # Exit the loop once a sector is identified for the current row
+                                
                     
-                    # Check for each sector's keywords in the 'line_of_business' column
-                    for sector, keywords in sector_keywords.items():
-                        for keyword in keywords:
-                            if keyword in line_of_business:
-                                df.at[index, 'sector'] = sector
-                                break  # Exit the loop once a sector is identified for the current row
-                            
-                
-                df.drop(columns="Sector", inplace=True)
-                df.rename(columns={'sector': 'Sector'}, inplace=True)
-                
+                    df.drop(columns="Sector", inplace=True)
+                    df.rename(columns={'sector': 'Sector'}, inplace=True)
+                except Exception as e:
+                    st.write(e)
                 
                 
                 
@@ -415,17 +487,19 @@ if add_sidebar == 'Data_Cleaning':
                 # Create a new column 'district' and initialize with 'Other'
                 df['District'] = 'Other'
                 
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['Location_of_borrower'].lower()
-                    
-                    # Check for each sector's keywords in the 'location' column
-                    for district, keywords in district_keywords.items():
-                        for keyword in keywords:
-                            if keyword in location:
-                                df.at[index, 'District'] = district
-                                break  # Exit the loop once a sector is identified for the current row
-
+                    for index, row in df.iterrows():
+                        location = row['Location_of_borrower'].lower()
+                        
+                        # Check for each sector's keywords in the 'location' column
+                        for district, keywords in district_keywords.items():
+                            for keyword in keywords:
+                                if keyword in location:
+                                    df.at[index, 'District'] = district
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                    st.write(e)
 
 
 
@@ -447,20 +521,19 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'region' and initialize with 'Other'
                 df['Region'] = 'Other'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['District'].lower()
-                    
-                    # Check for each district's keywords in the 'District' column
-                    for region, district in region_keywords.items():
-                        for keyword in district:
-                            if keyword in location:
-                                df.at[index, 'Region'] = region
-                                break  # Exit the loop once a sector is identified for the current row
-
-
-
+                    for index, row in df.iterrows():
+                        location = row['District'].lower()
+                        
+                        # Check for each district's keywords in the 'District' column
+                        for region, district in region_keywords.items():
+                            for keyword in district:
+                                if keyword in location:
+                                    df.at[index, 'Region'] = region
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                    st.write(e)
 
 
 
@@ -470,31 +543,90 @@ if add_sidebar == 'Data_Cleaning':
             elif df['lender'].iloc[0] == 'Lyamujungu SACCO':
                 
                 df["Sector"] = df['Line_of_business'] + ' ' + df['Loan_purpose']
-                df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level','employment_status',
+                try:
+                    df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level','employment_status',
                                            'Date_of_birth','Loan_term_value','created','NIN', 'Phone_number','Line_of_business','Loan_purpose'])
-                df['Number_of_youth_employees'] = pd.to_numeric(df['Number_of_youth_employees'] ,errors='coerce')
-                df['Number_of_employees_that_are_refugees'] = pd.to_numeric(df['Number_of_employees_that_are_refugees'] ,errors='coerce')
-                df['Number_of_female_employees'] = pd.to_numeric(df['Number_of_female_employees'] ,errors='coerce')
-                df['Previously_unemployed'] = pd.to_numeric(df['Previously_unemployed'] ,errors='coerce')
-                df['Number_of_employees_with_disabilities'] = pd.to_numeric(df['Number_of_employees_with_disabilities'] ,errors='coerce')
-                df['Interest_rate'] = df['Interest_rate']/100
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Number_of_youth_employees'] = pd.to_numeric(df['Number_of_youth_employees'] ,errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Number_of_employees_that_are_refugees'] = pd.to_numeric(df['Number_of_employees_that_are_refugees'] ,errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Number_of_female_employees'] = pd.to_numeric(df['Number_of_female_employees'] ,errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Previously_unemployed'] = pd.to_numeric(df['Previously_unemployed'] ,errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Number_of_employees_with_disabilities'] = pd.to_numeric(df['Number_of_employees_with_disabilities'] ,errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Interest_rate'] = df['Interest_rate']/100
+                except Exception as e:
+                        st.write(e)
+                        
                 df['Loan_product_name'] = df['Loan_product_name'].str.replace("1-1-2-20 ","")
-                df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
-                
-                df["Length_of_time_running"] = pd.to_datetime(df["Length_of_time_running"], errors='coerce')
-                df["Length_of_time_running"] = df["Date_of_loan_issue"] - df["Length_of_time_running"]
-                df["Length_of_time_running"] = (df["Length_of_time_running"].dt.days//365).astype("Int64")
-                df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"], errors='coerce')
-                df['Tenure_of_loan'] = (df['Tenure_of_loan']/30).astype(int)
+
+                try:
+                    df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Length_of_time_running"] = pd.to_datetime(df["Length_of_time_running"], errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Length_of_time_running"] = df["Date_of_loan_issue"] - df["Length_of_time_running"]
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Length_of_time_running"] = (df["Length_of_time_running"].dt.days//365).astype("Int64")
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"], errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Tenure_of_loan'] = (df['Tenure_of_loan']/30).astype(int)
+                except Exception as e:
+                        st.write(e)
                 df['Rural_urban'] = df['Rural_urban'].replace("0","")
-                df['Number_of_employees'] = (pd.to_numeric(df['Number_of_employees'], errors='coerce')).astype("Int64")
-                df['Loan_amount'] = pd.to_numeric(df['Loan_amount'].str.replace(",","")).astype(int)
-                df['Expected_monthly_installment'] = pd.to_numeric(df['Expected_monthly_installment'].str.replace(",","")).astype(int)
+
+                try:
+                    df['Number_of_employees'] = (pd.to_numeric(df['Number_of_employees'], errors='coerce')).astype("Int64")
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Loan_amount'] = pd.to_numeric(df['Loan_amount'].str.replace(",","")).astype(int)
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Expected_monthly_installment'] = pd.to_numeric(df['Expected_monthly_installment'].str.replace(",","")).astype(int)
+                except Exception as e:
+                        st.write(e)
                 df['Person_with_disabilities'] = df['Person_with_disabilities'].str.replace('false','No')
-                df["Annual_revenue_of_borrower"] = pd.to_numeric(df["Annual_revenue_of_borrower"], errors='coerce')
-                df["Annual_revenue_of_borrower"] = df["Annual_revenue_of_borrower"].astype("Int64")
-                df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
-                
+
+                try:
+                    df["Annual_revenue_of_borrower"] = pd.to_numeric(df["Annual_revenue_of_borrower"], errors='coerce')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Annual_revenue_of_borrower"] = df["Annual_revenue_of_borrower"].astype("Int64")
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
+                except Exception as e:
+                        st.write(e)
                 #AddSectors
                 # Create a dictionary of sectors and their key words
                 sector_keywords = {
@@ -527,22 +659,24 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'sector' and initialize with 'Other'
                 df['sector'] = 'not_defined'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    line_of_business = row['Sector'].lower()
-                    
-                    # Check for each sector's keywords in the 'line_of_business' column
-                    for sector, keywords in sector_keywords.items():
-                        for keyword in keywords:
-                            if keyword in line_of_business:
-                                df.at[index, 'sector'] = sector
-                                break  # Exit the loop once a sector is identified for the current row
-            
-                df.drop(columns="Sector", inplace=True)
-                df.rename(columns={'sector': 'Sector'}, inplace=True)
-            
-            
+                    for index, row in df.iterrows():
+                        line_of_business = row['Sector'].lower()
+                        
+                        # Check for each sector's keywords in the 'line_of_business' column
+                        for sector, keywords in sector_keywords.items():
+                            for keyword in keywords:
+                                if keyword in line_of_business:
+                                    df.at[index, 'sector'] = sector
+                                    break  # Exit the loop once a sector is identified for the current row
+                
+                    df.drop(columns="Sector", inplace=True)
+                    df.rename(columns={'sector': 'Sector'}, inplace=True)
+                except Exception as e:
+                    st.write(e)
+
+
                 #Add Districts
                 # Define your Districts and corresponding keywords
                 district_keywords = {
@@ -578,18 +712,21 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'district' and initialize with 'Other'
                 df['District'] = 'Other'
-                
+
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['Location_of_borrower'].lower()
-                    
-                    # Check for each district's keywords in the 'location' column
-                    for district, keywords in district_keywords.items():
-                        for keyword in keywords:
-                            if keyword in location:
-                                df.at[index, 'District'] = district
-                                break  # Exit the loop once a district is identified for the current row
-            
+                    for index, row in df.iterrows():
+                        location = row['Location_of_borrower'].lower()
+                        
+                        # Check for each district's keywords in the 'location' column
+                        for district, keywords in district_keywords.items():
+                            for keyword in keywords:
+                                if keyword in location:
+                                    df.at[index, 'District'] = district
+                                    break  # Exit the loop once a district is identified for the current row
+                except Exception as e:
+                    st.write(e)
+
                 #Add Regions:
                 region_keywords = {
                         'Western': ['mbarara','fort portal','kagadi','kabale','rukungiri','ibanda','bushenyi','hoima','kyenjojo','kasese',
@@ -602,58 +739,91 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'region' and initialize with 'Other'
                 df['Region'] = 'Other'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['District'].lower()
-                    
-                    # Check for each district's keywords in the 'District' column
-                    for region, district in region_keywords.items():
-                        for keyword in district:
-                            if keyword in location:
-                                df.at[index, 'Region'] = region
-                                break  # Exit the loop once a Region is identified for the current row
+                    for index, row in df.iterrows():
+                        location = row['District'].lower()
+                        
+                        # Check for each district's keywords in the 'District' column
+                        for region, district in region_keywords.items():
+                            for keyword in district:
+                                if keyword in location:
+                                    df.at[index, 'Region'] = region
+                                    break  # Exit the loop once a Region is identified for the current row
+                except Exception as e:
+                    st.write(e)
                                 
-                                
-                                
-                                
-                                
-                                
+
+
+
                                 
             #Data Cleaning Code for Flow Uganda                   
             elif df['lender'].iloc[0] == 'Flow Uganda':
                 #to the Flow_Data DataFrame and drop the Original Columns
                 df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
-                df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level','Line_of_business', 'Loan_purpose',
+
+                try:
+                    df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level','Line_of_business', 'Loan_purpose',
                                            'employment_status', 'Loan_term_value','created','NIN', 'Phone_number', "Date_of_birth"])
-                
+                except Exception as e:
+                        st.write(e)
+                try:
                 #Convert Duration to Total Years
-                df['Length_of_time_running'] = df['Length_of_time_running'].fillna(' ')
-                def convert_to_years(duration):
-                    parts = duration.split()
-                    if len(parts) == 4:
-                        total_years = int(parts[0]) + int(parts[2])//12
-                    elif len(parts) == 2 and parts[1] == 'months':
-                        total_years = int(parts[0])//12
-                    else:
-                        total_years = 0
-                    return total_years
-                
+                    df['Length_of_time_running'] = df['Length_of_time_running'].fillna(' ')
+                    def convert_to_years(duration):
+                        parts = duration.split()
+                        if len(parts) == 4:
+                            total_years = int(parts[0]) + int(parts[2])//12
+                        elif len(parts) == 2 and parts[1] == 'months':
+                            total_years = int(parts[0])//12
+                        else:
+                            total_years = 0
+                        return total_years
+                except Exception as e:
+                        st.write(e)
+                try:
                 # Apply the function to the 'duration' column
-                df['Length_of_time_running'] = df['Length_of_time_running'].apply(convert_to_years)
+                    df['Length_of_time_running'] = df['Length_of_time_running'].apply(convert_to_years)
                 #Change Data Type
-                df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
-                df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"])
-                df['Gender'] = df['Gender'].str.title()
-                df['Tenure_of_loan'] = (df['Tenure_of_loan']/30).round(2)
-                df['Interest_rate'] = (df['Interest_rate']/df['Loan_amount'])*12/df['Tenure_of_loan']
-                df['Loan_type'] = df['Loan_type'].replace('SME','')
-                df['Age'] = df['Age'].astype(int)
-                df["Person_with_disabilities"] = df["Person_with_disabilities"].str.title()
-                
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Date_of_loan_issue"] = pd.to_datetime(df["Date_of_loan_issue"])
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Date_of_repayments_commencement"] = pd.to_datetime(df["Date_of_repayments_commencement"])
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Gender'] = df['Gender'].str.title()
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Tenure_of_loan'] = (df['Tenure_of_loan']/30).round(2)
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Interest_rate'] = (df['Interest_rate']/df['Loan_amount'])*12/df['Tenure_of_loan']
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Loan_type'] = df['Loan_type'].replace('SME','')
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df['Age'] = df['Age'].astype(int)
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df["Person_with_disabilities"] = df["Person_with_disabilities"].str.title()
+                except Exception as e:
+                        st.write(e)
+                try:
                 #Add Age Group Column 
-                df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
-                
+                    df["Age_Group"] = np.where(df["Age"] > 35, "Non Youth", "Youth")
+                except Exception as e:
+                        st.write(e)
 
                 # Create a dictionary of sectors and their key words
                 sector_keywords = {
@@ -686,24 +856,24 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'sector' and initialize with 'Other'
                 df['sector'] = 'not_defined'
-                
-                # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    line_of_business = row['Sector'].lower()
-                    
-                    # Check for each sector's keywords in the 'line_of_business' column
-                    for sector, keywords in sector_keywords.items():
-                        for keyword in keywords:
-                            if keyword in line_of_business:
-                                df.at[index, 'sector'] = sector
-                                break  # Exit the loop once a sector is identified for the current row
-                                                
+                try:
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        line_of_business = row['Sector'].lower()
+                        
+                        # Check for each sector's keywords in the 'line_of_business' column
+                        for sector, keywords in sector_keywords.items():
+                            for keyword in keywords:
+                                if keyword in line_of_business:
+                                    df.at[index, 'sector'] = sector
+                                    break  # Exit the loop once a sector is identified for the current row
 
-
-                # Delete the Original 'Sector' Column
-                df.drop(columns="Sector", inplace=True)
-                df.rename(columns={'sector': 'Sector'}, inplace=True)
-                
+    
+                    # Delete the Original 'Sector' Column
+                    df.drop(columns="Sector", inplace=True)
+                    df.rename(columns={'sector': 'Sector'}, inplace=True)
+                except Exception as e:
+                        st.write(e)
                 
                 
                 # Define your Districts and corresponding keywords
@@ -793,18 +963,19 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'district' and initialize with 'Other'
                 df['District'] = 'Other'
-                
-                # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['Location_of_borrower'].lower()
-                    
-                    # Check for each sector's keywords in the 'location' column
-                    for district, keywords in district_keywords.items():
-                        for keyword in keywords:
-                            if keyword in location:
-                                df.at[index, 'District'] = district
-                                break  # Exit the loop once a sector is identified for the current row
-                
+                try:
+                    # Iterate over each row in the DataFrame
+                    for index, row in df.iterrows():
+                        location = row['Location_of_borrower'].lower()
+                        
+                        # Check for each sector's keywords in the 'location' column
+                        for district, keywords in district_keywords.items():
+                            for keyword in keywords:
+                                if keyword in location:
+                                    df.at[index, 'District'] = district
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                        st.write(e)
 
 
                 region_keywords = {
@@ -821,30 +992,34 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'region' and initialize with 'Other'
                 df['Region'] = 'Other'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['District'].lower()
-                    
-                    # Check for each district's keywords in the 'District' column
-                    for region, district in region_keywords.items():
-                        for keyword in district:
-                            if keyword in location:
-                                df.at[index, 'Region'] = region
-                                break  # Exit the loop once a sector is identified for the current row
-                
-
-
-
+                    for index, row in df.iterrows():
+                        location = row['District'].lower()
+                        
+                        # Check for each district's keywords in the 'District' column
+                        for region, district in region_keywords.items():
+                            for keyword in district:
+                                if keyword in location:
+                                    df.at[index, 'Region'] = region
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                        st.write(e)
 
 
 
             #Data Cleaning Code for Vision Fund                   
             elif df['lender'].iloc[0] == 'Vision Fund':
                 df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
-                df = df.drop(columns = ['Line_of_business', 'Loan_purpose'])
-                df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level',
+                try:
+                    df = df.drop(columns = ['Line_of_business', 'Loan_purpose'])
+                except Exception as e:
+                        st.write(e)
+                try:
+                    df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level',
                                            'employment_status', 'Loan_term_value','created','NIN', 'Phone_number',"Date_of_birth"])
+                except Exception as e:
+                        st.write(e)
 
                 try:
                     df["Borrower_ID"] = df["Borrower_ID"].astype(str)
@@ -916,22 +1091,23 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'sector' and initialize with 'Other'
                 df['sector'] = 'not_defined'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    line_of_business = row['Sector'].lower()
-                    
-                    # Check for each sector's keywords in the 'line_of_business' column
-                    for sector, keywords in sector_keywords.items():
-                        for keyword in keywords:
-                            if keyword in line_of_business:
-                                df.at[index, 'sector'] = sector
-                                break  # Exit the loop once a sector is identified for the current row
-
-                # Delete the Original 'Sector' Column
-                df.drop(columns="Sector", inplace=True)
-                df.rename(columns={'sector': 'Sector'}, inplace=True)
-
+                    for index, row in df.iterrows():
+                        line_of_business = row['Sector'].lower()
+                        
+                        # Check for each sector's keywords in the 'line_of_business' column
+                        for sector, keywords in sector_keywords.items():
+                            for keyword in keywords:
+                                if keyword in line_of_business:
+                                    df.at[index, 'sector'] = sector
+                                    break  # Exit the loop once a sector is identified for the current row
+                
+                    # Delete the Original 'Sector' Column
+                    df.drop(columns="Sector", inplace=True)
+                    df.rename(columns={'sector': 'Sector'}, inplace=True)
+                except Exception as e:
+                    st.write(e)
 
 
                 # Define your Districts and corresponding keywords
@@ -1046,19 +1222,19 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'district' and initialize with 'Other'
                 df['District'] = 'Other'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['Location_of_borrower'].lower()
-                    
-                    # Check for each sector's keywords in the 'location' column
-                    for district, keywords in district_keywords.items():
-                        for keyword in keywords:
-                            if keyword in location:
-                                df.at[index, 'District'] = district
-                                break  # Exit the loop once a sector is identified for the current row
-                
-                
+                    for index, row in df.iterrows():
+                        location = row['Location_of_borrower'].lower()
+                        
+                        # Check for each sector's keywords in the 'location' column
+                        for district, keywords in district_keywords.items():
+                            for keyword in keywords:
+                                if keyword in location:
+                                    df.at[index, 'District'] = district
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                    st.write(e)
 
                 region_keywords = {
                         'Western': ['mbarara','fort portal','kagadi','kabale','rukungiri','ibanda','bushenyi','hoima','kyenjojo','kasese',
@@ -1079,25 +1255,32 @@ if add_sidebar == 'Data_Cleaning':
                 
                 # Create a new column 'region' and initialize with 'Other'
                 df['Region'] = 'Other'
-                
+                try:
                 # Iterate over each row in the DataFrame
-                for index, row in df.iterrows():
-                    location = row['District'].lower()
-                    
-                    # Check for each district's keywords in the 'District' column
-                    for region, district in region_keywords.items():
-                        for keyword in district:
-                            if keyword in location:
-                                df.at[index, 'Region'] = region
-                                break  # Exit the loop once a sector is identified for the current row
-                
+                    for index, row in df.iterrows():
+                        location = row['District'].lower()
+                        
+                        # Check for each district's keywords in the 'District' column
+                        for region, district in region_keywords.items():
+                            for keyword in district:
+                                if keyword in location:
+                                    df.at[index, 'Region'] = region
+                                    break  # Exit the loop once a sector is identified for the current row
+                except Exception as e:
+                        st.write(e)
                 
             #Data Cleaning Code for Other PFI                  
             else:
                 df["Sector"] = df['Line_of_business'] + " " + df['Loan_purpose']
-                df = df.drop(columns = ['Line_of_business', 'Loan_purpose'])
-                df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level',
+                try:
+                    df = df.drop(columns = ['Line_of_business', 'Loan_purpose'])
+                except Exception as e:
+                    st.write(e)
+                try:
+                    df = df.drop(columns =['id','name_of_borrower', 'email_of_borrower', 'highest_education_level',
                                            'employment_status', 'Loan_term_value','created','NIN', 'Phone_number'])
+                except Exception as e:
+                    st.write(e)
                 if df["Date_of_birth"].iloc[0] =='':
                     df = df.drop(columns =["Date_of_birth"])
                 try:
@@ -1176,6 +1359,7 @@ if add_sidebar == 'Data_Cleaning':
                     df['sector'] = 'not_defined'
                     
                     # Iterate over each row in the DataFrame
+                    df['Sector'] = df['Sector'].fillna('Other')
                     for index, row in df.iterrows():
                         line_of_business = row['Sector'].lower()
                         
@@ -1190,8 +1374,8 @@ if add_sidebar == 'Data_Cleaning':
                     df.drop(columns="Sector", inplace=True)
                     df.rename(columns={'sector': 'Sector'}, inplace=True)
     
-                except Exception:
-                    st.write('Error determining Sector')
+                except Exception as e:
+                    st.write(e)
 
                 # Define your Districts and corresponding keywords
                 district_keywords = {
@@ -1318,8 +1502,8 @@ if add_sidebar == 'Data_Cleaning':
                                     df.at[index, 'District'] = district
                                     break  # Exit the loop once a sector is identified for the current row
                     
-                except Exception:
-                    st.write('Error determining Sector')
+                except Exception as e:
+                    st.write(e)
 
                 try:
                     region_keywords = {
@@ -1352,10 +1536,8 @@ if add_sidebar == 'Data_Cleaning':
                                 if keyword in location:
                                     df.at[index, 'Region'] = region
                                     break  # Exit the loop once a sector is identified for the current row
-                    
-                                
-                except Exception:
-                    st.write('Error determining District')                
+                except Exception as e:
+                    st.write(e)                
                 
 
 
@@ -1373,7 +1555,7 @@ if add_sidebar == 'Data_Cleaning':
                 
                 lender = df['lender'].iloc[0]
                 import calendar
-                month = calendar.month_name[df.iloc[1,1]]
+                month = calendar.month_name[int(df['month'].iloc[0])]
                 #Add button to Download Data
                 st.download_button(
                     label="Click to Download Clean File",
@@ -1416,29 +1598,41 @@ if add_sidebar == 'Data_Cleaning':
             st.write(Loan_type)
             
             st.subheader('Number of Women Borrowers')
-            Gender_df = pd.DataFrame(df.groupby('Gender')['Loan_amount'].count())
-            Gender_df = Gender_df.rename(columns = {"Loan_amount":"Number"})
-            Gender_df["Percent (%)"] = (Gender_df["Number"]*100/sum(Gender_df["Number"])).round(2)
-            st.write(Gender_df)
-            
+            try:
+                Gender_df = pd.DataFrame(df.groupby('Gender')['Loan_amount'].count())
+                Gender_df = Gender_df.rename(columns = {"Loan_amount":"Number"})
+                Gender_df["Percent (%)"] = (Gender_df["Number"]*100/sum(Gender_df["Number"])).round(2)
+                st.write(Gender_df)
+            except Exception:
+                st.write("Error")
+                
             st.subheader('Number of Youth Borrowers')
-            Age_Group_df = pd.DataFrame(df.groupby('Age_Group')['Loan_amount'].count())
-            Age_Group_df = Age_Group_df.rename(columns = {"Loan_amount":"Number"})
-            Age_Group_df["Percent (%)"] = (Age_Group_df["Number"]*100/sum(Age_Group_df["Number"])).round(2)
-            st.write(Age_Group_df)
-            
+            try:
+                Age_Group_df = pd.DataFrame(df.groupby('Age_Group')['Loan_amount'].count())
+                Age_Group_df = Age_Group_df.rename(columns = {"Loan_amount":"Number"})
+                Age_Group_df["Percent (%)"] = (Age_Group_df["Number"]*100/sum(Age_Group_df["Number"])).round(2)
+                st.write(Age_Group_df)
+            except Exception:
+                st.write("Error")
+                
             st.subheader('Economic Sectors Served')
-            Sector_df = pd.DataFrame(df.groupby('Sector')['Loan_amount'].count())
-            Sector_df = Sector_df.rename(columns = {"Loan_amount":"Number"})
-            Sector_df["Percent (%)"] = (Sector_df["Number"]*100/sum(Sector_df["Number"])).round(2)
-            st.write(Sector_df)
+            try:
+                Sector_df = pd.DataFrame(df.groupby('Sector')['Loan_amount'].count())
+                Sector_df = Sector_df.rename(columns = {"Loan_amount":"Number"})
+                Sector_df["Percent (%)"] = (Sector_df["Number"]*100/sum(Sector_df["Number"])).round(2)
+                st.write(Sector_df)
+            except Exception:
+                st.write("Error")
             
             st.subheader('Average Revenue of Borrowers')
-            Annual_Revenue = format(round(df['Annual_revenue_of_borrower'].mean(), 0), ',')
-            st.metric('Average Revenue (UGX)',Annual_Revenue)
-            
             try:
-                st.subheader('Average Number of Employees')
+                Annual_Revenue = format(round(df['Annual_revenue_of_borrower'].mean(), 0), ',')
+                st.metric('Average Revenue (UGX)',Annual_Revenue)
+            except Exception:
+                st.write("Error")
+            
+            st.subheader('Average Number of Employees')
+            try:
                 employees = round(df['Number_of_employees'].mean(), 0)
                 st.metric('Average number of employees:', employees)
             except Exception:
